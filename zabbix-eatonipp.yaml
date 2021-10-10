@@ -1,0 +1,293 @@
+zabbix_export:
+  version: '5.4'
+  date: '2021-10-10T03:46:02Z'
+  groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: bed99c281b7b42129afaf69a62da411d
+      template: 'Eaton Intelligent Power Protector by Zabbix agent active custom'
+      name: 'Eaton Intelligent Power Protector by Zabbix agent active custom'
+      groups:
+        -
+          name: Templates/Applications
+      discovery_rules:
+        -
+          uuid: 6b7e6f76749640dc87aeba657e169875
+          name: 'UPS discovery'
+          type: ZABBIX_ACTIVE
+          key: eatonipp.discover
+          delay: 1h
+          description: 'Discover UPS'
+          item_prototypes:
+            -
+              uuid: 51452fd14cd54238a1f3f8faf3f04bd4
+              name: '{#UPS_NAME}: UPS Apparent Power'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, ApparentPower]'
+              delay: '0'
+              units: VA
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["System.ApparentPower"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+            -
+              uuid: e2760c5ef2804042848f130c311e1aa1
+              name: '{#UPS_NAME}: UPS Battery Charge'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, BatteryCharge]'
+              delay: '0'
+              units: '%'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerSummary.RemainingCapacity"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+              trigger_prototypes:
+                -
+                  uuid: 6f5f90cd61614bf89f721257aa3e7443
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, BatteryCharge])<30'
+                  name: '{#UPS_NAME}: UPS battery is low'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+                -
+                  uuid: 4f9964ffd7504dfd87bf36d896912d03
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, BatteryCharge])<15'
+                  name: '{#UPS_NAME}: UPS battery is very low'
+                  priority: DISASTER
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+            -
+              uuid: a8b8d8ff6bba40488cfca2706e8d3a45
+              name: '{#UPS_NAME}: UPS Battery Voltage'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, BatteryVoltage]'
+              delay: '0'
+              value_type: FLOAT
+              units: V
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerSummary.Voltage"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+            -
+              uuid: de1a66e03153466c991b4d2f8a363a25
+              name: '{#UPS_NAME}: UPS AC input voltage'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, InputVoltage]'
+              delay: '0'
+              units: V
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerConverter.Input[1].Voltage"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+            -
+              uuid: 2b22ec34e4704f43b40c7ea0d135acc9
+              name: '{#UPS_NAME}: UPS AC output voltage'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, OutputVoltage]'
+              delay: '0'
+              units: V
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerConverter.Output.Voltage"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+            -
+              uuid: ac0c861c734d491db5ac0a83d68baf99
+              name: '{#UPS_NAME}: UPS Real Power'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, RealPower]'
+              delay: '0'
+              units: W
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["System.ActivePower"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+            -
+              uuid: 8cc234988b4a408bb7a0668097573faa
+              name: '{#UPS_NAME}: UPS Health'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, UpsHealth]'
+              delay: '0'
+              valuemap:
+                name: UpsHealth
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerSummary.PresentStatus.Good"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+              trigger_prototypes:
+                -
+                  uuid: c37683c12cb547369cc6c3563b7c293c
+                  expression: 'nodata(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, UpsHealth],5m)=1'
+                  name: '{#UPS_NAME}: No data for 5m'
+                  priority: AVERAGE
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+                -
+                  uuid: 42591774f97d472bb1c4003a9d852f33
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, UpsHealth])=0'
+                  name: '{#UPS_NAME}: UPS Health is BAD'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+            -
+              uuid: 4b94f82079a544149b623cc6dae1c74d
+              name: '{#UPS_NAME}: UPS Load'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, UpsLoad]'
+              delay: '0'
+              units: '%'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["System.PercentLoad"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+              trigger_prototypes:
+                -
+                  uuid: b50db1453856447b93c8314d52d56017
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, UpsLoad])>=85'
+                  name: '{#UPS_NAME}: UPS load is high'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+                -
+                  uuid: 56b661d435ca4ae98976d66dfb649a09
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, UpsLoad])>=95'
+                  name: '{#UPS_NAME}: UPS load is very high'
+                  priority: DISASTER
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+            -
+              uuid: 79bfcd3eccaa40d3b3fa2228396e9ee2
+              name: '{#UPS_NAME}: UPS Status'
+              type: DEPENDENT
+              key: 'eatonipp.get[{#UPS_SN}, UpsStatus]'
+              delay: '0'
+              valuemap:
+                name: UpsStatus
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.["UPS.PowerSummary.PresentStatus.ACPresent"]'
+              master_item:
+                key: 'eatonipp.get[{#UPS_SN}]'
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+              trigger_prototypes:
+                -
+                  uuid: 11a46334c42148f38b19714de61649d0
+                  expression: 'last(/Eaton Intelligent Power Protector by Zabbix agent active custom/eatonipp.get[{#UPS_SN}, UpsStatus])=0'
+                  name: '{#UPS_NAME}: UPS is on battery'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: Application
+                      value: UPS
+            -
+              uuid: 587b3513e32a4074980691feb4c29b8f
+              name: 'Get all values on {#UPS_NAME}'
+              type: ZABBIX_ACTIVE
+              key: 'eatonipp.get[{#UPS_SN}]'
+              history: '0'
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: UPS
+      tags:
+        -
+          tag: Application
+          value: UPS
+      valuemaps:
+        -
+          uuid: cdab06dc81984469bb0dd73c8604dad5
+          name: UpsHealth
+          mappings:
+            -
+              value: '1'
+              newvalue: GOOD
+            -
+              value: '0'
+              newvalue: BAD
+        -
+          uuid: dcc4495f13324ea0bdf12524019841da
+          name: UpsStatus
+          mappings:
+            -
+              value: '0'
+              newvalue: 'ON BATTERY'
+            -
+              value: '1'
+              newvalue: ONLINE
