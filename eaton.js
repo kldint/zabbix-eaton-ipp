@@ -270,7 +270,7 @@ async function DiscoverJSON(username, token) {
   data = await request({
     method: 'POST',
     endpoint: "http://" + url + ":4679/server/data_srv.js?action=loadNodeList",
-    data: 'filter=%5B%7B%22viewID%22%3A%22powersource%22%2C%22object%22%3A%22System.Tag%22%2C%22op%22%3A%22%3D%3D%22%2C%22value%22%3A%22PWS%22%7D%5D&fieldSet=%5B%22nodeID%22%5D&sessionID=' + token,
+    data: 'filter=%5B%5D&fieldSet=%5B%22nodeID%22%5D&sessionID=' + token,
     cookies: 'mc2LastLogin=' + username + ";sessionID=" + token,
   }).then(response => {
     return response.data.nodeList.nodeData;
